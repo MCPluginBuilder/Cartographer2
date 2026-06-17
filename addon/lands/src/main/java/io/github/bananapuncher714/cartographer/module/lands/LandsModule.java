@@ -36,6 +36,7 @@ import io.github.bananapuncher714.cartographer.module.lands.ChunkBorderShader.Ch
 import io.github.bananapuncher714.cartographer.module.lands.settings.SettingStateLandVisibility;
 import io.github.bananapuncher714.cartographer.module.lands.visibility.CursorVisibility;
 import io.github.bananapuncher714.cartographer.module.lands.visibility.LandVisibility;
+import me.angeschossen.lands.api.applicationframework.util.ULID;
 import me.angeschossen.lands.api.integration.LandsIntegration;
 import me.angeschossen.lands.api.land.ChunkCoordinate;
 import me.angeschossen.lands.api.land.Land;
@@ -48,7 +49,7 @@ public class LandsModule extends Module implements Listener {
 	
 	private LandsIntegration integration;
 	
-	protected Map< Integer, Map< ChunkLocation, Set< BlockFace > > > data;
+	protected Map< ULID, Map< ChunkLocation, Set< BlockFace > > > data;
 
 	protected Color landOwner;
 	protected Color landTrusted;
@@ -73,7 +74,7 @@ public class LandsModule extends Module implements Listener {
 			init( minimap );
 		}
 
-		data = new HashMap< Integer, Map< ChunkLocation, Set< BlockFace > > >();
+		data = new HashMap< ULID, Map< ChunkLocation, Set< BlockFace > > >();
 		
 		integration = new LandsIntegration( getCartographer() );
 		
@@ -133,7 +134,7 @@ public class LandsModule extends Module implements Listener {
 			}
 			
 			if ( !locations.isEmpty() ) {
-				data.put( land.getId(), ChunkBorderShader.getBorders( locations ) );
+				data.put( land.getULID(), ChunkBorderShader.getBorders( locations ) );
 			}
 		}
 	}
@@ -150,7 +151,7 @@ public class LandsModule extends Module implements Listener {
 			for ( Land land : lands ) {
 				UUID owner = land.getOwnerUID();
 				if ( uuid.equals( owner ) || landVis == LandVisibility.ALL || ( landVis == LandVisibility.TRUSTED && land.getTrustedPlayer( uuid ).isTrustedWholeLand() ) ) {
-					Map< ChunkLocation, Set< BlockFace > > locations = data.get( land.getId() );
+					Map< ChunkLocation, Set< BlockFace > > locations = data.get( land.getULID() );
 					
 					if ( locations != null ) {
 						Color color = landUntrusted;
@@ -177,7 +178,7 @@ public class LandsModule extends Module implements Listener {
 	}
 	
 	private CursorProperties loadFrom( ConfigurationSection section, Supplier< String > supplier ) {
-		Type type = FailSafe.getEnum( Type.class, section.getString( "icon" ).split( "\\s+" ) );
+		Type type = FailSafe.getTypeFrom( Type.class, section.getString( "icon" ).split( "\\s+" ) );
 		CursorVisibility visibility = FailSafe.getEnum( CursorVisibility.class, section.getString( "default-visibility" ) );
 		double range = section.getDouble( "range" );
 		boolean enabled = section.getBoolean( "enabled" );

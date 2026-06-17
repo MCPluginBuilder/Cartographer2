@@ -7,10 +7,9 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.map.MapCursor.Type;
 
-import com.massivecraft.factions.FPlayer;
-import com.massivecraft.factions.FPlayers;
-import com.massivecraft.factions.Faction;
-
+import dev.kitteh.factions.FPlayer;
+import dev.kitteh.factions.FPlayers;
+import dev.kitteh.factions.Faction;
 import io.github.bananapuncher714.cartographer.core.Cartographer;
 import io.github.bananapuncher714.cartographer.core.api.WorldCursor;
 import io.github.bananapuncher714.cartographer.core.api.map.WorldCursorProvider;
@@ -30,12 +29,12 @@ public class HomeWaypointProvider implements WorldCursorProvider {
 		MapViewer viewer = Cartographer.getInstance().getPlayerManager().getViewerFor( player.getUniqueId() );
 		if ( viewer.getSetting( FactionsUUIDModule.FACTION_HOME ) ) {
 			Location location = setting.getLocation();
-			FPlayer fplayer = FPlayers.getInstance().getByPlayer( player );
+			FPlayer fplayer = FPlayers.fPlayers().get( player );
 			if ( fplayer.hasFaction() ) {
-				Faction faction = fplayer.getFaction();
+				Faction faction = fplayer.faction();
 				
 				if ( faction.hasHome() ) {
-					Location home = faction.getHome().clone();
+					Location home = faction.home().clone();
 					if ( home.getWorld() == location.getWorld() ) {
 						home.setYaw( setting.isRotating() ? location.getYaw() : 180 );
 						

@@ -1,5 +1,7 @@
 package io.github.bananapuncher714.cartographer.core.util;
 
+import java.lang.reflect.Field;
+
 /**
  * Utility methods to prevent null values.
  * 
@@ -27,6 +29,32 @@ public final class FailSafe {
 			}
 		}
 		return getEnum( clazz, pop( values ) );
+	}
+	
+	@SuppressWarnings("unchecked")
+    public static < T > T getTypeFrom( Class< T > clazz, String... values ) {
+	    if ( !clazz.isEnum() ) {
+	        if ( values == null || values.length == 0 ) {
+	            try {
+                    Field field = clazz.getDeclaredField( values[ 0 ] );
+                    field.setAccessible( true );
+                    return ( T ) field.get( null );
+	            } catch ( NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e ) {
+                    return getTypeFrom( clazz, pop( values ) );
+                }
+	        } else {
+	            return null;
+	        }
+	    } else {
+            T[] constants = clazz.getEnumConstants();
+            if ( values == null || values.length == 0 ) return constants[ 0 ];
+            for ( Object object : constants ) {
+                if ( object.toString().equals( values[ 0 ] ) ) {
+                    return ( T ) object;
+                }
+            }
+	    }
+        return getTypeFrom( clazz, pop( values ) );
 	}
 	
 	public static String[] pop( String[] array ) {

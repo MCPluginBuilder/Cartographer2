@@ -8,7 +8,7 @@
 		<version>2</version>
 	</parent>
 	<artifactId>cartographer2-addon-lands</artifactId>
-	<version>1.0.4</version>
+	<version>1.0.5</version>
 
 	<properties>
 		<maven.deploy.skip>true</maven.deploy.skip>
@@ -16,8 +16,8 @@
 
 	<repositories>
 		<repository>
-			<id>jitpack.io</id>
-			<url>https://jitpack.io</url>
+			<id>incredibpleplugins</id>
+			<url>https://repo.incredibleplugins.com/releases</url>
 		</repository>
 	</repositories>
 
@@ -25,7 +25,7 @@
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot-api</artifactId>
-			<version>1.19.3-R0.1-SNAPSHOT</version>
+			<version>26.2-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -35,10 +35,9 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.github.angeschossen</groupId>
-			<artifactId>LandsAPI</artifactId>
-			<version>7.19.15</version>
-			<scope>provided</scope>
+		  <groupId>com.incredibleplugins</groupId>
+		  <artifactId>lands-api</artifactId>
+		  <version>7.25.14</version>
 		</dependency>
 	</dependencies>
 </project>

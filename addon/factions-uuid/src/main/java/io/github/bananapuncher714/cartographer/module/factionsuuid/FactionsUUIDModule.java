@@ -21,12 +21,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.map.MapCursor.Type;
 
-import com.massivecraft.factions.FPlayer;
-import com.massivecraft.factions.FPlayers;
-import com.massivecraft.factions.Faction;
-import com.massivecraft.factions.Factions;
-import com.massivecraft.factions.perms.Relation;
-
+import dev.kitteh.factions.FPlayer;
+import dev.kitteh.factions.FPlayers;
+import dev.kitteh.factions.Faction;
+import dev.kitteh.factions.Factions;
+import dev.kitteh.factions.permissible.Relation;
 import io.github.bananapuncher714.cartographer.core.api.ChunkLocation;
 import io.github.bananapuncher714.cartographer.core.api.events.minimap.MinimapLoadEvent;
 import io.github.bananapuncher714.cartographer.core.api.setting.SettingState;
@@ -45,7 +44,7 @@ public class FactionsUUIDModule extends Module implements Listener {
 	public static final SettingStateBoolean FACTION_PLAYERS = SettingStateBoolean.of( "factions_show_players", false, true );
 	public static final SettingStateBoolean FACTION_HOME = SettingStateBoolean.of( "factions_show_fhome", false, true );
 
-	private Map< String, Map< ChunkLocation, Set< BlockFace > > > claims = new HashMap< String, Map< ChunkLocation, Set< BlockFace > > >();
+	private Map< Integer, Map< ChunkLocation, Set< BlockFace > > > claims = new HashMap< Integer, Map< ChunkLocation, Set< BlockFace > > >();
 	private Map< FactionStatus, Color > colors = new HashMap< FactionStatus, Color >();
 	private Map< Relation, Type > icons = new HashMap< Relation, Type >();
 
@@ -122,20 +121,20 @@ public class FactionsUUIDModule extends Module implements Listener {
 
 	private void tick() {
 		claims.clear();
-		for ( Faction faction : Factions.getInstance().getAllFactions() ) {
+		for ( Faction faction : Factions.factions().all() ) {
 			Set< ChunkLocation > chunks = faction
-					.getAllClaims()
+					.claims()
 					.stream()
-					.map( loc -> { return new ChunkLocation( loc.getWorld(), ( int ) loc.getX(), ( int ) loc.getZ() ); } )
+					.map( loc -> { return new ChunkLocation( loc.world(), ( int ) loc.x(), ( int ) loc.x() ); } )
 					.collect( Collectors.toSet() );
-			claims.put( faction.getId(), ChunkBorderShader.getBorders( chunks ) );
+			claims.put( faction.id(), ChunkBorderShader.getBorders( chunks ) );
 		}
 	}
 
 	private Type getType( Player viewer, Player target ) {
-		FPlayer fViewer = FPlayers.getInstance().getByPlayer( viewer );
-		FPlayer fTarget = FPlayers.getInstance().getByPlayer( target );
-		Relation relation = fViewer.getRelationTo( fTarget );
+		FPlayer fViewer = FPlayers.fPlayers().get( viewer );
+		FPlayer fTarget = FPlayers.fPlayers().get( target );
+		Relation relation = fViewer.relationTo( fTarget );
 		return icons.get( relation );
 	}
 
@@ -143,12 +142,12 @@ public class FactionsUUIDModule extends Module implements Listener {
 		MapViewer viewer = getCartographer().getPlayerManager().getViewerFor( player.getUniqueId() );
 		Set< ChunkBorderData > data = new HashSet< ChunkBorderData >();
 		if ( viewer.getSetting( FACTION_CLAIMS ) ) {
-			FPlayer fPlayer = FPlayers.getInstance().getByPlayer( player );
-			Faction playerFaction = fPlayer.getFaction();
-			for ( Entry< String, Map< ChunkLocation, Set< BlockFace > > > entry : claims.entrySet() ) {
-				Faction faction = Factions.getInstance().getFactionById( entry.getKey() );
+			FPlayer fPlayer = FPlayers.fPlayers().get( player );
+			Faction playerFaction = fPlayer.faction();
+			for ( Entry< Integer, Map< ChunkLocation, Set< BlockFace > > > entry : claims.entrySet() ) {
+				Faction faction = Factions.factions().get( entry.getKey() );
 				Color color = colors.get( FactionStatus.NEUTRAL );
-				Relation relation = faction.getRelationTo( fPlayer );
+				Relation relation = faction.relationTo( fPlayer );
 				if ( playerFaction == faction ) {
 					color = colors.get( FactionStatus.SELF );
 				} else if ( faction.isSafeZone() ) {
