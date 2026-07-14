@@ -2,11 +2,21 @@
 
 # The various colors for each region
 colors:
-  # Custom color scheme for certain regions, like spawn
+  # Custom color scheme for certain regions, like "spawn"
+  # The region settings are checked from bottom to top until the first match is found.
+  #
+  # Use the optional "pattern" setting for expanded region name pattern definition.
+  # This option supports regex (https://regexr.com), like "shop-[1-3]" or ".*_admin".
+  # Without this setting, the YAML config key is used for normal region name definition (without regex support).
   regions:
     spawn:
       nonmember: "0x408800"
       member: "0x408800"
+      owner: "#00FF00"
+    admin-shops:
+      pattern: "shop-[1-3]"
+      nonmember: "#FF0000"
+      member: "#00698c"
       owner: "#00FF00"
   # The default color scheme for regions that aren't specified in the region section
   # It supports RGB, hex or an integer
