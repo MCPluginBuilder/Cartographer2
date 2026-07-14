@@ -24,7 +24,7 @@ public class WorldGuardModule extends Module implements Listener {
 	public static final SettingStateBoolean WORLDGUARD_REGIONS = SettingStateBoolean.of( "worldguard_show_regions", false, true );
 	
 	protected Map< String, RegionColors > colors;
-	protected RegionColors defColors;
+	protected RegionColors defaultColors;
 	
 	protected WorldGuardWrapper wrapper;
 	
@@ -94,7 +94,7 @@ public class WorldGuardModule extends Module implements Listener {
 		if ( section == null ) {
 			getLogger().warning( "No 'colors' section found!" );
 		} else {
-			defColors = loadFrom( section.getConfigurationSection( "default" ) );
+			defaultColors = loadFrom( section.getConfigurationSection( "default" ) );
 			
 			if ( section.contains( "regions" ) ) {
 				ConfigurationSection regions = section.getConfigurationSection( "regions" );
@@ -113,7 +113,7 @@ public class WorldGuardModule extends Module implements Listener {
 	}
 	
 	protected RegionColors getFor( String name ) {
-		return colors.getOrDefault( name, defColors );
+		return colors.getOrDefault( name, defaultColors);
 	}
 	
 	protected WorldGuardWrapper getWrapper() {
