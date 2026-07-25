@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -99,31 +100,22 @@ public class WorldGuardModule extends Module implements Listener {
 			defaultColors = loadFrom( section.getConfigurationSection( "default" ) );
 			
 			if ( section.contains( "regions" ) ) {
-				ConfigurationSection regionSection = section.getConfigurationSection( "regions" );
 				
-				for ( String key : regionSection.getKeys( false ) ) {
-					
-					ConfigurationSection region = regionSection.getConfigurationSection( key );
+				List< Map<?, ?> > regions = section.getMapList( "regions" );
 				
-					if ( region == null ) {
-						continue;
-					}
+				for ( Map<?, ?> map : regions ) {
+					String pattern = ( String ) map.get( "pattern" );
 					
-					// If the "pattern" setting is defined, use this value for extended pattern definition.
-					if ( region.contains( "pattern" ) ) {
-						try {
-							String regex = "^" + region.getString( "pattern" ) + "$";
-							colorRules.add( new ColorRule( Pattern.compile( regex ), loadFrom( regionSection.getConfigurationSection( key ) ) ) );
-						} catch ( PatternSyntaxException ex ) {
-							getLogger().warning( "Invalid region regex '" + key + "': " + ex.getMessage() );
-						}
-						
-					} else {
-						// Alternative: Use the config key for region name comparison.
-						colorRules.add( new ColorRule( key, loadFrom( regionSection.getConfigurationSection( key ) ) ) );
+					try {
+						colorRules.add( new ColorRule(
+								Pattern.compile( pattern ), 
+								loadFrom( map )
+						));
+					} catch ( PatternSyntaxException ex ) {
+						getLogger().warning( "Invalid regex '" + pattern + "': " + ex.getMessage() );
 					}
-					
 				}
+			
 			}
 		}
 	}
@@ -135,14 +127,17 @@ public class WorldGuardModule extends Module implements Listener {
 		return new RegionColors( owner, member, nonmember );
 	}
 	
+	private RegionColors loadFrom( Map<?, ?> map ) {
+		Color nonmember = PaletteManager.fromString( ( String ) map.get( "nonmember" ) ).get();
+		Color member = PaletteManager.fromString( ( String ) map.get( "member" ) ).get();
+		Color owner = PaletteManager.fromString( ( String ) map.get( "owner" ) ).get();
+		return new RegionColors( owner, member, nonmember );
+	}
+	
 	RegionColors getFor( String targetRegionName ) {
-		// Go through the configuration entries from bottom to top:
-		for ( int i = colorRules.size() - 1; i >= 0; i-- ) {
-			
-			ColorRule rule = colorRules.get( i );
-			
-			if ( rule.isMatch( targetRegionName ) ) {
-				return rule.getColor();
+		for ( ColorRule colorRule : colorRules ) {
+			if ( colorRule.isMatch( targetRegionName ) ) {
+				return colorRule.getColor();
 			}
 		}
 		return defaultColors;
