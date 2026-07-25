@@ -1,17 +1,23 @@
-## World Guard Module for Cartographer 2
+## WorldGuard Module for Cartographer 2
 
 # The various colors for each region
 colors:
-  # Custom color scheme for certain regions, like spawn
+  # Custom color scheme for certain regions, like "spawn"
+  # The region settings are checked from top to bottom until the first match is found.
+  # The region name pattern supports regex (https://regexr.com), like "shop-[1-3]" or ".*_admin".
   regions:
-    spawn:
-      nonmember: "0x408800"
-      member: "0x408800"
-      owner: "#00FF00"
+  - pattern: "spawn"
+    nonmember: "0x408800"
+    member: "0x408800"
+    owner: "#00FF00"
+  - pattern: "shop-[1-3]"
+    nonmember: "#FF0000"
+    member: "#00698c"
+    owner: "#00FF00"
   # The default color scheme for regions that aren't specified in the region section
   # It supports RGB, hex or an integer
   default:
-    # The color that non members view regions as
+    # The color that non-members view regions as
     nonmember: "#FFFF00"
     # The color that members view the region as
     member: "#00FFFF"

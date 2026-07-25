@@ -2,8 +2,11 @@ package io.github.bananapuncher714.cartographer.module.worldguard;
 
 import java.awt.Color;
 import java.io.File;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -23,8 +26,8 @@ import io.github.bananapuncher714.cartographer.module.worldguard.api.WorldGuardW
 public class WorldGuardModule extends Module implements Listener {
 	public static final SettingStateBoolean WORLDGUARD_REGIONS = SettingStateBoolean.of( "worldguard_show_regions", false, true );
 	
-	protected Map< String, RegionColors > colors;
-	protected RegionColors defColors;
+	protected List< ColorRule > colorRules;
+	protected RegionColors defaultColors;
 	
 	protected WorldGuardWrapper wrapper;
 	
@@ -43,7 +46,7 @@ public class WorldGuardModule extends Module implements Listener {
 			return;
 		}
 		
-		colors = new HashMap< String, RegionColors >();
+		colorRules = new ArrayList<>();
 		loadConfig();
 
 		for ( Minimap minimap : getCartographer().getMapManager().getMinimaps().values() ) {
@@ -86,7 +89,7 @@ public class WorldGuardModule extends Module implements Listener {
 	}
 	
 	private void loadConfig() {
-		colors.clear();
+		colorRules.clear();
 		
 		FileConfiguration config = YamlConfiguration.loadConfiguration( new File( getDataFolder(), "config.yml" ) );
 		ConfigurationSection section = config.getConfigurationSection( "colors" );
@@ -94,13 +97,25 @@ public class WorldGuardModule extends Module implements Listener {
 		if ( section == null ) {
 			getLogger().warning( "No 'colors' section found!" );
 		} else {
-			defColors = loadFrom( section.getConfigurationSection( "default" ) );
+			defaultColors = loadFrom( section.getConfigurationSection( "default" ) );
 			
 			if ( section.contains( "regions" ) ) {
-				ConfigurationSection regions = section.getConfigurationSection( "regions" );
-				for ( String key : regions.getKeys( false ) ) {
-					colors.put( key, loadFrom( regions.getConfigurationSection( key ) ) );
+				
+				List< Map<?, ?> > regions = section.getMapList( "regions" );
+				
+				for ( Map<?, ?> map : regions ) {
+					String pattern = ( String ) map.get( "pattern" );
+					
+					try {
+						colorRules.add( new ColorRule(
+								Pattern.compile( pattern ), 
+								loadFrom( map )
+						));
+					} catch ( PatternSyntaxException ex ) {
+						getLogger().warning( "Invalid regex '" + pattern + "': " + ex.getMessage() );
+					}
 				}
+			
 			}
 		}
 	}
@@ -112,8 +127,20 @@ public class WorldGuardModule extends Module implements Listener {
 		return new RegionColors( owner, member, nonmember );
 	}
 	
-	protected RegionColors getFor( String name ) {
-		return colors.getOrDefault( name, defColors );
+	private RegionColors loadFrom( Map<?, ?> map ) {
+		Color nonmember = PaletteManager.fromString( ( String ) map.get( "nonmember" ) ).get();
+		Color member = PaletteManager.fromString( ( String ) map.get( "member" ) ).get();
+		Color owner = PaletteManager.fromString( ( String ) map.get( "owner" ) ).get();
+		return new RegionColors( owner, member, nonmember );
+	}
+	
+	RegionColors getFor( String targetRegionName ) {
+		for ( ColorRule colorRule : colorRules ) {
+			if ( colorRule.isMatch( targetRegionName ) ) {
+				return colorRule.getColor();
+			}
+		}
+		return defaultColors;
 	}
 	
 	protected WorldGuardWrapper getWrapper() {
